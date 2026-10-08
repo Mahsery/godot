@@ -3058,6 +3058,7 @@ void RenderingServer::_bind_methods() {
 	BIND_ENUM_CONSTANT(RSE::COMPOSITOR_EFFECT_FLAG_NEEDS_MOTION_VECTORS);
 	BIND_ENUM_CONSTANT(RSE::COMPOSITOR_EFFECT_FLAG_NEEDS_ROUGHNESS);
 	BIND_ENUM_CONSTANT(RSE::COMPOSITOR_EFFECT_FLAG_NEEDS_SEPARATE_SPECULAR);
+	BIND_ENUM_CONSTANT(RSE::COMPOSITOR_EFFECT_FLAG_NEEDS_BLEND_ID);
 
 	BIND_ENUM_CONSTANT(RSE::COMPOSITOR_EFFECT_CALLBACK_TYPE_PRE_OPAQUE);
 	BIND_ENUM_CONSTANT(RSE::COMPOSITOR_EFFECT_CALLBACK_TYPE_POST_OPAQUE);
@@ -3236,6 +3237,7 @@ void RenderingServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("instance_set_surface_override_material", "instance", "surface", "material"), &RenderingServer::instance_set_surface_override_material);
 	ClassDB::bind_method(D_METHOD("instance_set_visible", "instance", "visible"), &RenderingServer::instance_set_visible);
 	ClassDB::bind_method(D_METHOD("instance_geometry_set_transparency", "instance", "transparency"), &RenderingServer::instance_geometry_set_transparency);
+	ClassDB::bind_method(D_METHOD("instance_geometry_set_blend_id", "instance", "blend_id"), &RenderingServer::instance_geometry_set_blend_id);
 
 	ClassDB::bind_method(D_METHOD("instance_teleport", "instance"), &RenderingServer::instance_teleport);
 

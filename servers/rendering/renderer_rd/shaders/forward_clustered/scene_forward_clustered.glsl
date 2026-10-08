@@ -1015,6 +1015,10 @@ layout(location = 0) out vec4 normal_roughness_output_buffer;
 
 #ifdef MODE_RENDER_VOXEL_GI
 layout(location = 1) out uvec2 voxel_gi_buffer;
+// Blend ID (TDGame MeshBlend patch): discarded unless the blend-ID attachment is bound.
+layout(location = 2) out uint blend_id_output_buffer;
+#else
+layout(location = 1) out uint blend_id_output_buffer;
 #endif
 
 #endif //MODE_RENDER_NORMAL
@@ -1210,6 +1214,7 @@ void fragment_shader(in SceneData scene_data) {
 
 	float ao = 1.0;
 	float ao_light_affect = 0.0;
+	uint blend_id = instances.data[instance_index].blend_id;
 
 	float alpha_highp = float(instances.data[instance_index].flags >> INSTANCE_FLAGS_FADE_SHIFT) / float(255.0);
 
@@ -3123,6 +3128,7 @@ void fragment_shader(in SceneData scene_data) {
 		normal_roughness_output_buffer.w = 1.0 - normal_roughness_output_buffer.w;
 	}
 	normal_roughness_output_buffer.w = normal_roughness_output_buffer.w;
+	blend_id_output_buffer = blend_id & 0xFFu;
 
 #ifdef MODE_RENDER_VOXEL_GI
 	if (bool(instances.data[instance_index].flags & INSTANCE_FLAGS_USE_VOXEL_GI)) { // process voxel_gi_instances

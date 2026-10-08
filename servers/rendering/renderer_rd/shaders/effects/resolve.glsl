@@ -23,6 +23,17 @@ layout(set = 2, binding = 0) uniform usampler2DMS source_voxel_gi;
 layout(rg8ui, set = 3, binding = 0) uniform restrict writeonly uimage2D dest_voxel_gi;
 #endif
 
+#ifdef BLEND_ID_RESOLVE
+// Blend ID (TDGame MeshBlend patch): IDs are never averaged; take the representative sample.
+#ifdef VOXEL_GI_RESOLVE
+#define BLEND_ID_SET 4
+#else
+#define BLEND_ID_SET 2
+#endif
+layout(set = BLEND_ID_SET, binding = 0) uniform usampler2DMS source_blend_id;
+layout(r8ui, set = BLEND_ID_SET + 1, binding = 0) uniform restrict writeonly uimage2D dest_blend_id;
+#endif
+
 #endif
 
 layout(push_constant, std430) uniform Params {
@@ -222,6 +233,9 @@ void main() {
 	best_normal_roughness = texelFetch(source_normal_roughness, pos, best_index);
 #ifdef VOXEL_GI_RESOLVE
 	best_voxel_gi = texelFetch(source_voxel_gi, pos, best_index).rg;
+#endif
+#ifdef BLEND_ID_RESOLVE
+	imageStore(dest_blend_id, pos, uvec4(texelFetch(source_blend_id, pos, best_index).r, 0, 0, 0));
 #endif
 
 #endif

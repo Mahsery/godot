@@ -54,6 +54,8 @@
 #define RB_TEX_NORMAL_ROUGHNESS_MSAA SNAME("normal_roughness_msaa")
 #define RB_TEX_VOXEL_GI SNAME("voxel_gi")
 #define RB_TEX_VOXEL_GI_MSAA SNAME("voxel_gi_msaa")
+#define RB_TEX_BLEND_ID SNAME("blend_id")
+#define RB_TEX_BLEND_ID_MSAA SNAME("blend_id_msaa")
 
 namespace RendererSceneRenderImplementation {
 
@@ -143,6 +145,12 @@ public:
 		RID get_voxelgi(uint32_t p_layer) { return render_buffers->get_texture_slice(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_VOXEL_GI, p_layer, 0); }
 		RID get_voxelgi_msaa(uint32_t p_layer) { return render_buffers->get_texture_slice(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_VOXEL_GI_MSAA, p_layer, 0); }
 
+		// Blend ID (TDGame MeshBlend patch): material BLEND_ID written in the normal-roughness prepass.
+		void ensure_blend_id();
+		bool has_blend_id() const { return render_buffers->has_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_BLEND_ID); }
+		RID get_blend_id(uint32_t p_layer) { return render_buffers->get_texture_slice(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_BLEND_ID, p_layer, 0); }
+		RID get_blend_id_msaa(uint32_t p_layer) { return render_buffers->get_texture_slice(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_BLEND_ID_MSAA, p_layer, 0); }
+
 		void ensure_fsr2(RendererRD::FSR2Effect *p_effect);
 		RendererRD::FSR2Context *get_fsr2_context() const { return fsr2_context; }
 
@@ -166,6 +174,8 @@ public:
 		static uint32_t get_normal_roughness_usage_bits(bool p_resolve, bool p_msaa, bool p_storage);
 		static RD::DataFormat get_voxelgi_format();
 		static uint32_t get_voxelgi_usage_bits(bool p_resolve, bool p_msaa, bool p_storage);
+		static RD::DataFormat get_blend_id_format();
+		static uint32_t get_blend_id_usage_bits(bool p_resolve, bool p_msaa, bool p_storage);
 	};
 
 private:
@@ -355,6 +365,8 @@ private:
 			uint32_t layer_mask;
 			float prev_transform[12];
 			float lightmap_uv_scale[4];
+			uint32_t blend_id; // TDGame MeshBlend patch: default BLEND_ID.
+			uint32_t blend_pad[3];
 #ifdef REAL_T_IS_DOUBLE
 			float model_precision[4];
 			float prev_model_precision[4];

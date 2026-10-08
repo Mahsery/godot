@@ -50,6 +50,8 @@ private:
 		RESOLVE_MODE_GI,
 		RESOLVE_MODE_GI_VOXEL_GI,
 		RESOLVE_MODE_DEPTH,
+		RESOLVE_MODE_GI_BLEND_ID,
+		RESOLVE_MODE_GI_VOXEL_GI_BLEND_ID,
 		RESOLVE_MODE_MAX
 	};
 
@@ -71,7 +73,7 @@ public:
 	Resolve(bool p_prefer_raster_effects);
 	~Resolve();
 
-	void resolve_gi(RID p_source_depth, RID p_source_normal_roughness, RID p_source_voxel_gi, RID p_dest_depth, RID p_dest_normal_roughness, RID p_dest_voxel_gi, Vector2i p_screen_size, int p_samples);
+	void resolve_gi(RID p_source_depth, RID p_source_normal_roughness, RID p_source_voxel_gi, RID p_dest_depth, RID p_dest_normal_roughness, RID p_dest_voxel_gi, Vector2i p_screen_size, int p_samples, RID p_source_blend_id = RID(), RID p_dest_blend_id = RID());
 	void resolve_depth(RID p_source_depth, RID p_dest_depth, Vector2i p_screen_size, int p_samples);
 	void resolve_depth_raster(RID p_source_rd_texture, RID p_dest_framebuffer, int p_samples);
 };

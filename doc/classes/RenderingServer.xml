@@ -1959,6 +1959,14 @@
 				Sets the per-instance shader uniform on the specified 3D geometry instance. Equivalent to [method GeometryInstance3D.set_instance_shader_parameter].
 			</description>
 		</method>
+		<method name="instance_geometry_set_blend_id">
+			<return type="void" />
+			<param index="0" name="instance" type="RID" />
+			<param index="1" name="blend_id" type="int" />
+			<description>
+				Sets the mesh blend ID (0-255) of the given geometry instance. Equivalent to [member GeometryInstance3D.blend_id].
+			</description>
+		</method>
 		<method name="instance_geometry_set_transparency">
 			<return type="void" />
 			<param index="0" name="instance" type="RID" />
@@ -5740,6 +5748,9 @@
 		</constant>
 		<constant name="COMPOSITOR_EFFECT_FLAG_NEEDS_SEPARATE_SPECULAR" value="16" enum="CompositorEffectFlags">
 			The rendering effect requires specular data to be separated out (Forward+ only).
+		</constant>
+		<constant name="COMPOSITOR_EFFECT_FLAG_NEEDS_BLEND_ID" value="32" enum="CompositorEffectFlags">
+			The rendering effect requires the [code]BLEND_ID[/code] buffer written by spatial materials during the depth pre-pass (Forward+ only).
 		</constant>
 		<constant name="COMPOSITOR_EFFECT_CALLBACK_TYPE_PRE_OPAQUE" value="0" enum="CompositorEffectCallbackType">
 			The callback is called before our opaque rendering pass, but after depth prepass (if applicable).

@@ -30,6 +30,9 @@
 		</method>
 	</methods>
 	<members>
+		<member name="blend_id" type="int" setter="set_blend_id" getter="get_blend_id" default="0">
+			Mesh blend ID (0-255) written to the [code]blend_id[/code] depth pre-pass buffer requested by [member CompositorEffect.needs_blend_id]. It is the default value of the [code]BLEND_ID[/code] built-in in spatial shaders, so every opaque or alpha-clipped material writes it without changes. [code]0[/code] means the geometry does not blend. Forward+ only.
+		</member>
 		<member name="cast_shadow" type="int" setter="set_cast_shadows_setting" getter="get_cast_shadows_setting" enum="GeometryInstance3D.ShadowCastingSetting" default="1">
 			The mode used to cast shadows from this instance.
 		</member>

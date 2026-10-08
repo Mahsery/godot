@@ -55,6 +55,7 @@ public:
 	virtual void set_fade_range(bool p_enable_near, float p_near_begin, float p_near_end, bool p_enable_far, float p_far_begin, float p_far_end) = 0;
 	virtual void set_parent_fade_alpha(float p_alpha) = 0;
 	virtual void set_transparency(float p_transparency) = 0;
+	virtual void set_blend_id(uint32_t p_blend_id) = 0;
 	virtual void set_use_baked_light(bool p_enable) = 0;
 	virtual void set_use_dynamic_gi(bool p_enable) = 0;
 	virtual void set_use_lightmap(RID p_lightmap_instance, const Rect2 &p_lightmap_uv_scale, int p_lightmap_slice_index) = 0;
@@ -98,6 +99,7 @@ public:
 	bool use_aabb_center = true;
 
 	uint32_t layer_mask = 1;
+	uint32_t blend_id = 0; // TDGame MeshBlend patch.
 
 	bool fade_near = false;
 	float fade_near_begin = 0;
@@ -144,6 +146,7 @@ public:
 	virtual void set_fade_range(bool p_enable_near, float p_near_begin, float p_near_end, bool p_enable_far, float p_far_begin, float p_far_end) override;
 	virtual void set_parent_fade_alpha(float p_alpha) override;
 	virtual void set_transparency(float p_transparency) override;
+	virtual void set_blend_id(uint32_t p_blend_id) override;
 	virtual void set_use_baked_light(bool p_enable) override;
 	virtual void set_use_dynamic_gi(bool p_enable) override;
 	virtual void set_instance_shader_uniforms_offset(int32_t p_offset) override;

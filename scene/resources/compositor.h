@@ -59,6 +59,7 @@ private:
 	bool needs_motion_vectors = false;
 	bool needs_normal_roughness = false;
 	bool needs_separate_specular = false;
+	bool needs_blend_id = false;
 
 protected:
 	static void _bind_methods();
@@ -91,6 +92,9 @@ public:
 
 	void set_needs_separate_specular(bool p_enabled);
 	bool get_needs_separate_specular() const;
+
+	void set_needs_blend_id(bool p_enabled);
+	bool get_needs_blend_id() const;
 
 	CompositorEffect();
 	~CompositorEffect();

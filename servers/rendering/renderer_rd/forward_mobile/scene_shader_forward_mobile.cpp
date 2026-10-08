@@ -708,6 +708,7 @@ void SceneShaderForwardMobile::init(const String p_defines) {
 		actions.renames["BACKLIGHT"] = "backlight_highp";
 		actions.renames["AO"] = "ao_highp";
 		actions.renames["AO_LIGHT_AFFECT"] = "ao_light_affect_highp";
+		actions.renames["BLEND_ID"] = "blend_id";
 		actions.renames["EMISSION"] = "emission_highp";
 		actions.renames["POINT_COORD"] = "point_coord";
 		actions.renames["INSTANCE_CUSTOM"] = "instance_custom";

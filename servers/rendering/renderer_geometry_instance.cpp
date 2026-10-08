@@ -110,6 +110,10 @@ void RenderGeometryInstanceBase::set_transparency(float p_transparency) {
 	force_alpha = CLAMP(1.0 - p_transparency, 0, 1);
 }
 
+void RenderGeometryInstanceBase::set_blend_id(uint32_t p_blend_id) {
+	blend_id = p_blend_id & 0xFF;
+}
+
 void RenderGeometryInstanceBase::set_use_baked_light(bool p_enable) {
 	data->use_baked_light = p_enable;
 

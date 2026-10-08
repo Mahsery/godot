@@ -90,6 +90,18 @@ void RenderForwardClustered::RenderBufferDataForwardClustered::ensure_voxelgi() 
 	}
 }
 
+void RenderForwardClustered::RenderBufferDataForwardClustered::ensure_blend_id() {
+	ERR_FAIL_NULL(render_buffers);
+
+	if (!render_buffers->has_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_BLEND_ID)) {
+		bool msaa = render_buffers->get_msaa_3d() != RSE::VIEWPORT_MSAA_DISABLED;
+		render_buffers->create_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_BLEND_ID, get_blend_id_format(), get_blend_id_usage_bits(msaa, false, render_buffers->get_can_be_storage()));
+		if (msaa) {
+			render_buffers->create_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_BLEND_ID_MSAA, get_blend_id_format(), get_blend_id_usage_bits(false, msaa, render_buffers->get_can_be_storage()), render_buffers->get_texture_samples());
+		}
+	}
+}
+
 void RenderForwardClustered::RenderBufferDataForwardClustered::ensure_fsr2(RendererRD::FSR2Effect *p_effect) {
 	if (fsr2_context == nullptr) {
 		fsr2_context = p_effect->create_context(render_buffers->get_internal_size(), render_buffers->get_target_size());
@@ -227,7 +239,10 @@ RID RenderForwardClustered::RenderBufferDataForwardClustered::get_depth_fb(Depth
 
 			RID normal_roughness_buffer = render_buffers->get_texture(RB_SCOPE_FORWARD_CLUSTERED, use_msaa ? RB_TEX_NORMAL_ROUGHNESS_MSAA : RB_TEX_NORMAL_ROUGHNESS);
 
-			return FramebufferCacheRD::get_singleton()->get_cache_multiview(render_buffers->get_view_count(), depth, normal_roughness_buffer);
+			// The normal-roughness shaders always write the blend ID (TDGame MeshBlend patch).
+			ensure_blend_id();
+			RID blend_id_buffer = render_buffers->get_texture(RB_SCOPE_FORWARD_CLUSTERED, use_msaa ? RB_TEX_BLEND_ID_MSAA : RB_TEX_BLEND_ID);
+			return FramebufferCacheRD::get_singleton()->get_cache_multiview(render_buffers->get_view_count(), depth, normal_roughness_buffer, blend_id_buffer);
 		} break;
 		case DEPTH_FB_ROUGHNESS_VOXELGI: {
 			ensure_normal_roughness_texture();
@@ -236,7 +251,9 @@ RID RenderForwardClustered::RenderBufferDataForwardClustered::get_depth_fb(Depth
 			RID normal_roughness_buffer = render_buffers->get_texture(RB_SCOPE_FORWARD_CLUSTERED, use_msaa ? RB_TEX_NORMAL_ROUGHNESS_MSAA : RB_TEX_NORMAL_ROUGHNESS);
 			RID voxelgi_buffer = render_buffers->get_texture(RB_SCOPE_FORWARD_CLUSTERED, use_msaa ? RB_TEX_VOXEL_GI_MSAA : RB_TEX_VOXEL_GI);
 
-			return FramebufferCacheRD::get_singleton()->get_cache_multiview(render_buffers->get_view_count(), depth, normal_roughness_buffer, voxelgi_buffer);
+			ensure_blend_id();
+			RID blend_id_buffer = render_buffers->get_texture(RB_SCOPE_FORWARD_CLUSTERED, use_msaa ? RB_TEX_BLEND_ID_MSAA : RB_TEX_BLEND_ID);
+			return FramebufferCacheRD::get_singleton()->get_cache_multiview(render_buffers->get_view_count(), depth, normal_roughness_buffer, voxelgi_buffer, blend_id_buffer);
 		} break;
 		default: {
 			ERR_FAIL_V(RID());
@@ -281,6 +298,14 @@ RD::DataFormat RenderForwardClustered::RenderBufferDataForwardClustered::get_vox
 }
 
 uint32_t RenderForwardClustered::RenderBufferDataForwardClustered::get_voxelgi_usage_bits(bool p_resolve, bool p_msaa, bool p_storage) {
+	return RenderSceneBuffersRD::get_color_usage_bits(p_resolve, p_msaa, p_storage);
+}
+
+RD::DataFormat RenderForwardClustered::RenderBufferDataForwardClustered::get_blend_id_format() {
+	return RD::DATA_FORMAT_R8_UINT;
+}
+
+uint32_t RenderForwardClustered::RenderBufferDataForwardClustered::get_blend_id_usage_bits(bool p_resolve, bool p_msaa, bool p_storage) {
 	return RenderSceneBuffersRD::get_color_usage_bits(p_resolve, p_msaa, p_storage);
 }
 
@@ -868,6 +893,7 @@ void RenderForwardClustered::_fill_instance_data(RenderListType p_render_list, i
 		instance_data.flags = inst->flags_cache;
 		instance_data.gi_offset = inst->gi_offset_cache;
 		instance_data.layer_mask = inst->layer_mask;
+		instance_data.blend_id = inst->blend_id;
 		instance_data.instance_uniforms_ofs = uint32_t(inst->shader_uniforms_offset);
 		instance_data.set_lightmap_uv_scale(inst->lightmap_uv_scale);
 
@@ -1809,6 +1835,7 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 	bool ce_needs_motion_vectors = _compositor_effects_has_flag(p_render_data, RSE::COMPOSITOR_EFFECT_FLAG_NEEDS_MOTION_VECTORS);
 	bool ce_needs_normal_roughness = _compositor_effects_has_flag(p_render_data, RSE::COMPOSITOR_EFFECT_FLAG_NEEDS_ROUGHNESS);
 	bool ce_needs_separate_specular = _compositor_effects_has_flag(p_render_data, RSE::COMPOSITOR_EFFECT_FLAG_NEEDS_SEPARATE_SPECULAR);
+	bool ce_needs_blend_id = _compositor_effects_has_flag(p_render_data, RSE::COMPOSITOR_EFFECT_FLAG_NEEDS_BLEND_ID);
 
 	// sdfgi first
 	_update_sdfgi(p_render_data);
@@ -2024,6 +2051,10 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 		} else if (get_debug_draw_mode() == RSE::VIEWPORT_DEBUG_DRAW_NORMAL_BUFFER || scene_state.used_normal_texture) {
 			depth_pass_mode = PASS_MODE_DEPTH_NORMAL_ROUGHNESS;
 		}
+		if (ce_needs_blend_id && depth_pass_mode == PASS_MODE_DEPTH) {
+			// The blend ID is written by the normal-roughness prepass.
+			depth_pass_mode = PASS_MODE_DEPTH_NORMAL_ROUGHNESS;
+		}
 
 		switch (depth_pass_mode) {
 			case PASS_MODE_DEPTH: {
@@ -2032,11 +2063,13 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 			case PASS_MODE_DEPTH_NORMAL_ROUGHNESS: {
 				depth_framebuffer = rb_data->get_depth_fb(RenderBufferDataForwardClustered::DEPTH_FB_ROUGHNESS);
 				depth_pass_clear.push_back(Color(0, 0, 0, 0));
+				depth_pass_clear.push_back(Color(0, 0, 0, 0)); // Blend ID.
 			} break;
 			case PASS_MODE_DEPTH_NORMAL_ROUGHNESS_VOXEL_GI: {
 				depth_framebuffer = rb_data->get_depth_fb(RenderBufferDataForwardClustered::DEPTH_FB_ROUGHNESS_VOXELGI);
 				depth_pass_clear.push_back(Color(0, 0, 0, 0));
 				depth_pass_clear.push_back(Color(0, 0, 0, 0));
+				depth_pass_clear.push_back(Color(0, 0, 0, 0)); // Blend ID.
 			} break;
 			default: {
 			};
@@ -2233,7 +2266,7 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 			RD::get_singleton()->draw_command_begin_label("Resolve Depth Pre-Pass (MSAA)");
 			if (depth_pass_mode == PASS_MODE_DEPTH_NORMAL_ROUGHNESS || depth_pass_mode == PASS_MODE_DEPTH_NORMAL_ROUGHNESS_VOXEL_GI) {
 				for (uint32_t v = 0; v < rb->get_view_count(); v++) {
-					resolve_effects->resolve_gi(rb->get_depth_msaa(v), rb_data->get_normal_roughness_msaa(v), using_voxelgi ? rb_data->get_voxelgi_msaa(v) : RID(), rb->get_depth_texture(v), rb_data->get_normal_roughness(v), using_voxelgi ? rb_data->get_voxelgi(v) : RID(), rb->get_internal_size(), texture_multisamples[msaa]);
+					resolve_effects->resolve_gi(rb->get_depth_msaa(v), rb_data->get_normal_roughness_msaa(v), using_voxelgi ? rb_data->get_voxelgi_msaa(v) : RID(), rb->get_depth_texture(v), rb_data->get_normal_roughness(v), using_voxelgi ? rb_data->get_voxelgi(v) : RID(), rb->get_internal_size(), texture_multisamples[msaa], ce_needs_blend_id ? rb_data->get_blend_id_msaa(v) : RID(), ce_needs_blend_id ? rb_data->get_blend_id(v) : RID());
 				}
 			} else if (finish_depth) {
 				for (uint32_t v = 0; v < rb->get_view_count(); v++) {
@@ -4721,6 +4754,13 @@ static RD::FramebufferFormatID _get_depth_framebuffer_format_for_pipeline(bool p
 	if (p_voxelgi) {
 		attachment.format = RenderForwardClustered::RenderBufferDataForwardClustered::get_voxelgi_format();
 		attachment.usage_flags = RenderForwardClustered::RenderBufferDataForwardClustered::get_voxelgi_usage_bits(false, multisampling, p_can_be_storage);
+		attachments.push_back(attachment);
+	}
+
+	if (p_normal_roughness) {
+		// The normal-roughness shaders always write the blend ID (TDGame MeshBlend patch).
+		attachment.format = RenderForwardClustered::RenderBufferDataForwardClustered::get_blend_id_format();
+		attachment.usage_flags = RenderForwardClustered::RenderBufferDataForwardClustered::get_blend_id_usage_bits(false, multisampling, p_can_be_storage);
 		attachments.push_back(attachment);
 	}
 

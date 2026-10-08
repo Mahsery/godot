@@ -65,6 +65,10 @@ void CompositorEffect::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_needs_separate_specular"), &CompositorEffect::get_needs_separate_specular);
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "needs_separate_specular"), "set_needs_separate_specular", "get_needs_separate_specular");
 
+	ClassDB::bind_method(D_METHOD("set_needs_blend_id", "enable"), &CompositorEffect::set_needs_blend_id);
+	ClassDB::bind_method(D_METHOD("get_needs_blend_id"), &CompositorEffect::get_needs_blend_id);
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "needs_blend_id"), "set_needs_blend_id", "get_needs_blend_id");
+
 	BIND_ENUM_CONSTANT(EFFECT_CALLBACK_TYPE_PRE_OPAQUE)
 	BIND_ENUM_CONSTANT(EFFECT_CALLBACK_TYPE_POST_OPAQUE)
 	BIND_ENUM_CONSTANT(EFFECT_CALLBACK_TYPE_POST_SKY)
@@ -186,6 +190,19 @@ void CompositorEffect::set_needs_separate_specular(bool p_enabled) {
 
 bool CompositorEffect::get_needs_separate_specular() const {
 	return needs_separate_specular;
+}
+
+void CompositorEffect::set_needs_blend_id(bool p_enabled) {
+	needs_blend_id = p_enabled;
+	if (rid.is_valid()) {
+		RenderingServer *rs = RenderingServer::get_singleton();
+		ERR_FAIL_NULL(rs);
+		rs->compositor_effect_set_flag(rid, RSE::CompositorEffectFlags::COMPOSITOR_EFFECT_FLAG_NEEDS_BLEND_ID, needs_blend_id);
+	}
+}
+
+bool CompositorEffect::get_needs_blend_id() const {
+	return needs_blend_id;
 }
 
 CompositorEffect::CompositorEffect() {

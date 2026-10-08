@@ -1321,6 +1321,7 @@ MaterialStorage::MaterialStorage() {
 		actions.renames["BACKLIGHT"] = "backlight";
 		actions.renames["AO"] = "ao";
 		actions.renames["AO_LIGHT_AFFECT"] = "ao_light_affect";
+		actions.renames["BLEND_ID"] = "blend_id";
 		actions.renames["EMISSION"] = "emission";
 		actions.renames["POINT_COORD"] = "gl_PointCoord";
 		actions.renames["INSTANCE_CUSTOM"] = "instance_custom";

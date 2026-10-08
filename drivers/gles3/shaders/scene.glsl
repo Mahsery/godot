@@ -2287,6 +2287,7 @@ void main() {
 #endif
 
 	float ao = 1.0;
+	uint blend_id = 0u; // Blend ID is Forward+ only (TDGame MeshBlend patch).
 	float ao_light_affect = 0.0;
 
 	float alpha = 1.0;

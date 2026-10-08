@@ -370,6 +370,10 @@ struct InstanceData {
 	uint layer_mask;
 	mat3x4 prev_transform;
 	vec4 lightmap_uv_scale;
+	uint blend_id; // TDGame MeshBlend patch: default BLEND_ID.
+	uint blend_pad0;
+	uint blend_pad1;
+	uint blend_pad2;
 #ifdef USE_DOUBLE_PRECISION
 	vec4 model_precision;
 	vec4 prev_model_precision;
