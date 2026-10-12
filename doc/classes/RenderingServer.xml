@@ -3677,6 +3677,13 @@
 				Sets the default clear color which is used when a specific clear color has not been selected. See also [method get_default_clear_color].
 			</description>
 		</method>
+		<method name="set_frame_profiling_enabled">
+			<return type="void" />
+			<param index="0" name="enable" type="bool" />
+			<description>
+				If [code]true[/code], the renderer captures a GPU and CPU timestamp at the start of each of its passes (shadows, depth prepass, opaque, sky, post-processing and so on), as the editor's visual profiler does. Read them a few frames later with [method RenderingDevice.get_captured_timestamps_count], [method RenderingDevice.get_captured_timestamp_name] and [method RenderingDevice.get_captured_timestamp_gpu_time]. Capturing has a small cost; leave it off when nothing reads the timestamps.
+			</description>
+		</method>
 		<method name="shader_create">
 			<return type="RID" />
 			<description>
